@@ -1,0 +1,241 @@
+{
+  "RunType": "HTTP",
+  "Labels": "perf-gateway-istio.waf-perf.svc.cluster.local:80/ , loadgen-79785ff5db-qd4kd",
+  "StartTime": "2026-10-04T16:02:39.292940812Z",
+  "RequestedQPS": "500",
+  "RequestedDuration": "2m0s",
+  "ActualQPS": 499.99464931142705,
+  "ActualDuration": 120001284179,
+  "NumThreads": 16,
+  "Version": "1.75.3",
+  "DurationHistogram": {
+    "Count": 60000,
+    "Min": 0.000230883,
+    "Max": 0.009011324,
+    "Sum": 43.153417480000016,
+    "Avg": 0.000719223624666667,
+    "StdDev": 0.00021215860366698833,
+    "Data": [
+      {
+        "Start": 0.000230883,
+        "End": 0.001,
+        "Percent": 96.04333333333334,
+        "Count": 57626
+      },
+      {
+        "Start": 0.001,
+        "End": 0.002,
+        "Percent": 99.91333333333333,
+        "Count": 2322
+      },
+      {
+        "Start": 0.002,
+        "End": 0.003,
+        "Percent": 99.94166666666666,
+        "Count": 17
+      },
+      {
+        "Start": 0.003,
+        "End": 0.004,
+        "Percent": 99.95,
+        "Count": 5
+      },
+      {
+        "Start": 0.004,
+        "End": 0.005,
+        "Percent": 99.95833333333333,
+        "Count": 5
+      },
+      {
+        "Start": 0.006,
+        "End": 0.007,
+        "Percent": 99.97333333333333,
+        "Count": 9
+      },
+      {
+        "Start": 0.008,
+        "End": 0.009000000000000001,
+        "Percent": 99.99833333333333,
+        "Count": 15
+      },
+      {
+        "Start": 0.009000000000000001,
+        "End": 0.009011324,
+        "Percent": 100,
+        "Count": 1
+      }
+    ],
+    "Percentiles": [
+      {
+        "Percentile": 50,
+        "Value": 0.000631277635713666
+      },
+      {
+        "Percentile": 75,
+        "Value": 0.0008314816270368763
+      },
+      {
+        "Percentile": 90,
+        "Value": 0.0009516040218308026
+      },
+      {
+        "Percentile": 95,
+        "Value": 0.0009916448200954448
+      },
+      {
+        "Percentile": 99,
+        "Value": 0.0017639965546942303
+      },
+      {
+        "Percentile": 99.9,
+        "Value": 0.001996554694229116
+      }
+    ]
+  },
+  "ErrorsDurationHistogram": {
+    "Count": 0,
+    "Min": 0,
+    "Max": 0,
+    "Sum": 0,
+    "Avg": 0,
+    "StdDev": 0,
+    "Data": null
+  },
+  "Exactly": 0,
+  "Jitter": false,
+  "Uniform": false,
+  "NoCatchUp": false,
+  "RunID": 0,
+  "AccessLoggerInfo": "",
+  "ID": "2026-10-04-160239_perf_gateway_istio_waf_perf_svc_cluster_local_80_loadgen_79785ff5db_qd4kd",
+  "RetCodes": {
+    "200": 60000
+  },
+  "IPCountMap": {
+    "10.96.76.201:80": 16
+  },
+  "Insecure": false,
+  "MTLS": false,
+  "CACert": "",
+  "Cert": "",
+  "Key": "",
+  "UnixDomainSocket": "",
+  "URL": "http://perf-gateway-istio.waf-perf.svc.cluster.local:80/",
+  "NumConnections": 1,
+  "Compression": false,
+  "DisableFastClient": false,
+  "HTTP10": false,
+  "H2": false,
+  "DisableKeepAlive": false,
+  "AllowHalfClose": false,
+  "FollowRedirects": false,
+  "Resolve": "",
+  "HTTPReqTimeOut": 3000000000,
+  "UserCredentials": "",
+  "ContentType": "",
+  "Payload": "",
+  "MethodOverride": "",
+  "LogErrors": true,
+  "SequentialWarmup": false,
+  "ConnReuseRange": [
+    0,
+    0
+  ],
+  "NoResolveEachConn": false,
+  "Offset": 0,
+  "Resolution": 0.001,
+  "Sizes": {
+    "Count": 60000,
+    "Min": 1434,
+    "Max": 1434,
+    "Sum": 86040000,
+    "Avg": 1434,
+    "StdDev": 0,
+    "Data": [
+      {
+        "Start": 1434,
+        "End": 1434,
+        "Percent": 100,
+        "Count": 60000
+      }
+    ]
+  },
+  "HeaderSizes": {
+    "Count": 60000,
+    "Min": 198,
+    "Max": 198,
+    "Sum": 11880000,
+    "Avg": 198,
+    "StdDev": 0,
+    "Data": [
+      {
+        "Start": 198,
+        "End": 198,
+        "Percent": 100,
+        "Count": 60000
+      }
+    ]
+  },
+  "Sockets": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "SocketCount": 16,
+  "ConnectionStats": {
+    "Count": 16,
+    "Min": 0.000019985,
+    "Max": 0.000129383,
+    "Sum": 0.0008675450000000002,
+    "Avg": 0.00005422156250000001,
+    "StdDev": 0.00003202941087299442,
+    "Data": [
+      {
+        "Start": 0.000019985,
+        "End": 0.000129383,
+        "Percent": 100,
+        "Count": 16
+      }
+    ],
+    "Percentiles": [
+      {
+        "Percentile": 50,
+        "Value": 0.0000710374
+      },
+      {
+        "Percentile": 75,
+        "Value": 0.00010021019999999999
+      },
+      {
+        "Percentile": 90,
+        "Value": 0.00011771388
+      },
+      {
+        "Percentile": 95,
+        "Value": 0.00012354844
+      },
+      {
+        "Percentile": 99,
+        "Value": 0.00012821608799999998
+      },
+      {
+        "Percentile": 99.9,
+        "Value": 0.0001292663088
+      }
+    ]
+  },
+  "AbortOn": 0
+}

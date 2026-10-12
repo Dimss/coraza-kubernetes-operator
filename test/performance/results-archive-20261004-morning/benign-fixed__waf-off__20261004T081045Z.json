@@ -1,0 +1,253 @@
+{
+  "RunType": "HTTP",
+  "Labels": "perf-gateway-istio.waf-perf.svc.cluster.local:80/ , loadgen-79785ff5db-qd4kd",
+  "StartTime": "2026-10-04T08:10:55.282033984Z",
+  "RequestedQPS": "500",
+  "RequestedDuration": "2m0s",
+  "ActualQPS": 499.99023636982736,
+  "ActualDuration": 120002343317,
+  "NumThreads": 16,
+  "Version": "1.75.3",
+  "DurationHistogram": {
+    "Count": 60000,
+    "Min": 0.00011389,
+    "Max": 0.01070125,
+    "Sum": 86.27250717399994,
+    "Avg": 0.0014378751195666657,
+    "StdDev": 0.0005937543052681502,
+    "Data": [
+      {
+        "Start": 0.00011389,
+        "End": 0.001,
+        "Percent": 24.86,
+        "Count": 14916
+      },
+      {
+        "Start": 0.001,
+        "End": 0.002,
+        "Percent": 83.20833333333333,
+        "Count": 35009
+      },
+      {
+        "Start": 0.002,
+        "End": 0.003,
+        "Percent": 99.50333333333333,
+        "Count": 9777
+      },
+      {
+        "Start": 0.003,
+        "End": 0.004,
+        "Percent": 99.86166666666666,
+        "Count": 215
+      },
+      {
+        "Start": 0.004,
+        "End": 0.005,
+        "Percent": 99.92,
+        "Count": 35
+      },
+      {
+        "Start": 0.005,
+        "End": 0.006,
+        "Percent": 99.93833333333333,
+        "Count": 11
+      },
+      {
+        "Start": 0.007,
+        "End": 0.008,
+        "Percent": 99.95,
+        "Count": 7
+      },
+      {
+        "Start": 0.008,
+        "End": 0.009000000000000001,
+        "Percent": 99.97333333333333,
+        "Count": 14
+      },
+      {
+        "Start": 0.009000000000000001,
+        "End": 0.01,
+        "Percent": 99.975,
+        "Count": 1
+      },
+      {
+        "Start": 0.01,
+        "End": 0.01070125,
+        "Percent": 100,
+        "Count": 15
+      }
+    ],
+    "Percentiles": [
+      {
+        "Percentile": 50,
+        "Value": 0.0014308606358364993
+      },
+      {
+        "Percentile": 75,
+        "Value": 0.0018593218886572024
+      },
+      {
+        "Percentile": 90,
+        "Value": 0.00241679451774573
+      },
+      {
+        "Percentile": 95,
+        "Value": 0.0027236371074971875
+      },
+      {
+        "Percentile": 99,
+        "Value": 0.0029691111792983535
+      },
+      {
+        "Percentile": 99.9,
+        "Value": 0.004657142857142947
+      }
+    ]
+  },
+  "ErrorsDurationHistogram": {
+    "Count": 0,
+    "Min": 0,
+    "Max": 0,
+    "Sum": 0,
+    "Avg": 0,
+    "StdDev": 0,
+    "Data": null
+  },
+  "Exactly": 0,
+  "Jitter": false,
+  "Uniform": false,
+  "NoCatchUp": false,
+  "RunID": 0,
+  "AccessLoggerInfo": "",
+  "ID": "2026-10-04-081055_perf_gateway_istio_waf_perf_svc_cluster_local_80_loadgen_79785ff5db_qd4kd",
+  "RetCodes": {
+    "200": 60000
+  },
+  "IPCountMap": {
+    "10.96.76.201:80": 16
+  },
+  "Insecure": false,
+  "MTLS": false,
+  "CACert": "",
+  "Cert": "",
+  "Key": "",
+  "UnixDomainSocket": "",
+  "URL": "http://perf-gateway-istio.waf-perf.svc.cluster.local:80/",
+  "NumConnections": 1,
+  "Compression": false,
+  "DisableFastClient": false,
+  "HTTP10": false,
+  "H2": false,
+  "DisableKeepAlive": false,
+  "AllowHalfClose": false,
+  "FollowRedirects": false,
+  "Resolve": "",
+  "HTTPReqTimeOut": 3000000000,
+  "UserCredentials": "",
+  "ContentType": "",
+  "Payload": "",
+  "MethodOverride": "",
+  "LogErrors": true,
+  "SequentialWarmup": false,
+  "ConnReuseRange": [
+    0,
+    0
+  ],
+  "NoResolveEachConn": false,
+  "Offset": 0,
+  "Resolution": 0.001,
+  "Sizes": {
+    "Count": 60000,
+    "Min": 1434,
+    "Max": 1434,
+    "Sum": 86040000,
+    "Avg": 1434,
+    "StdDev": 0,
+    "Data": [
+      {
+        "Start": 1434,
+        "End": 1434,
+        "Percent": 100,
+        "Count": 60000
+      }
+    ]
+  },
+  "HeaderSizes": {
+    "Count": 60000,
+    "Min": 198,
+    "Max": 198,
+    "Sum": 11880000,
+    "Avg": 198,
+    "StdDev": 0,
+    "Data": [
+      {
+        "Start": 198,
+        "End": 198,
+        "Percent": 100,
+        "Count": 60000
+      }
+    ]
+  },
+  "Sockets": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "SocketCount": 16,
+  "ConnectionStats": {
+    "Count": 16,
+    "Min": 0.000016502,
+    "Max": 0.000078945,
+    "Sum": 0.0006194640000000001,
+    "Avg": 0.00003871650000000001,
+    "StdDev": 0.00001855227465164311,
+    "Data": [
+      {
+        "Start": 0.000016502,
+        "End": 0.000078945,
+        "Percent": 100,
+        "Count": 16
+      }
+    ],
+    "Percentiles": [
+      {
+        "Percentile": 50,
+        "Value": 0.00004564206666666667
+      },
+      {
+        "Percentile": 75,
+        "Value": 0.00006229353333333333
+      },
+      {
+        "Percentile": 90,
+        "Value": 0.00007228441333333333
+      },
+      {
+        "Percentile": 95,
+        "Value": 0.00007561470666666667
+      },
+      {
+        "Percentile": 99,
+        "Value": 0.00007827894133333333
+      },
+      {
+        "Percentile": 99.9,
+        "Value": 0.00007887839413333334
+      }
+    ]
+  },
+  "AbortOn": 0
+}

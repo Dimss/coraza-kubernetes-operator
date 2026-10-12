@@ -21,7 +21,7 @@ metadata:
   name: base-rules
 spec:
   rules: |
-    SecRuleEngine On
+    SecRuleEngine DetectionOnly
     SecRequestBodyAccess On
     SecRequestBodyLimit 13107200
     SecRequestBodyInMemoryLimit 131072

@@ -8,7 +8,7 @@ metadata:
   name: perf-base
 spec:
   rules: |
-    SecRuleEngine On
+    SecRuleEngine DetectionOnly
     SecRequestBodyAccess On
     SecResponseBodyAccess Off
 ---
