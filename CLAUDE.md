@@ -31,8 +31,8 @@ ISTIO_VERSION=$(grep '^ISTIO_VERSION' Makefile | cut -d' ' -f3) go test -run ^$ 
 ### Test tiers (require build tags and a cluster)
 
 ```bash
-make test.integration       # -tags=integration, needs KIND cluster
-make test.e2e               # -tags=e2e, needs KIND cluster
+make test.integration       # -tags=integration, needs Kubernetes/OpenShift cluster
+make test.e2e               # -tags=e2e, needs Kubernetes/OpenShift cluster
 make test.conformance       # -tags=conformance, runs CoreRuleSet FTW tests
 ```
 
@@ -40,11 +40,7 @@ Without the build tag, `go test` silently finds zero tests.
 
 ### Cluster setup
 
-```bash
-make cluster.kind           # Create KIND cluster with Istio + MetalLB + operator
-make cluster.kind.otel      # Same, plus OpenTelemetry Operator (central collector CRDs)
-make clean.cluster.kind     # Destroy it
-```
+Use an existing Kubernetes or OpenShift cluster with Istio installed. For OpenShift clusters, install Istio using `istioctl install --set profile=demo --set revision=coraza -y`.
 
 ## Architecture
 
