@@ -40,7 +40,10 @@ Without the build tag, `go test` silently finds zero tests.
 
 ### Cluster setup
 
-Use an existing Kubernetes or OpenShift cluster with Istio installed. For OpenShift clusters, install Istio using `istioctl install --set profile=demo --set revision=coraza -y`.
+Use an existing Kubernetes or OpenShift cluster with Istio installed.
+
+**OpenShift**: Use Sail Operator (see DEVELOPMENT.md for installation steps)  
+**Kubernetes**: Use upstream Istio via `istioctl install --set profile=demo -y`
 
 ## Architecture
 

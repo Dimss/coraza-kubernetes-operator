@@ -6,11 +6,32 @@
 
 ## Prerequisites
 
+### 0. Install Istio (if not already installed)
+
+**For OpenShift clusters:**
+
+```bash
+# Use the helper script which detects platform and installs Sail Operator
+../../hack/install-istio.sh
+```
+
+**For Kubernetes clusters:**
+
+```bash
+# Use the helper script which installs upstream Istio
+../../hack/install-istio.sh
+```
+
+Alternatively, see [DEVELOPMENT.md](../../DEVELOPMENT.md) for manual installation steps.
+
 ### 1. Cluster Access
 
 ```bash
 # Verify cluster connection
 kubectl cluster-info
+
+# Verify Istio is installed
+kubectl get pods -n istio-system
 
 # Check namespace
 kubectl get ns waf-perf 2>/dev/null || kubectl create ns waf-perf

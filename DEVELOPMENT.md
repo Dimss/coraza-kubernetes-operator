@@ -18,15 +18,68 @@ Development and testing should be done on an existing Kubernetes or OpenShift cl
 
 ### Install Istio (if not already installed)
 
-For OpenShift clusters or Kubernetes clusters without Istio:
+#### OpenShift clusters (recommended: use Sail Operator)
+
+OpenShift includes the Sail Operator for managing Istio. This is the recommended approach for OpenShift:
+
+```bash
+# Create istio-system namespace
+kubectl create namespace istio-system
+
+# Install Sail Operator via OLM
+cat <<EOF | kubectl apply -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: sail-operator
+  namespace: istio-system
+spec:
+  targetNamespaces:
+  - istio-system
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: sailoperator
+  namespace: istio-system
+spec:
+  channel: 3.0-nightly
+  name: sailoperator
+  source: community-operators
+  sourceNamespace: openshift-marketplace
+EOF
+
+# Wait for operator to be ready
+kubectl wait --for=condition=Ready pod -l name=sail-operator -n istio-system --timeout=300s
+
+# Create Istio control plane
+cat <<EOF | kubectl apply -f -
+apiVersion: sailoperator.io/v1alpha1
+kind: Istio
+metadata:
+  name: default
+spec:
+  version: v1.23.2
+  namespace: istio-system
+  updateStrategy:
+    type: InPlace
+EOF
+
+# Wait for Istio to be ready
+kubectl wait --for=condition=Ready istio/default -n istio-system --timeout=300s
+```
+
+#### Kubernetes clusters (upstream Istio)
+
+For vanilla Kubernetes clusters without Sail Operator:
 
 ```bash
 # Download and install istioctl
 curl -L https://istio.io/downloadIstio | sh -
 export PATH="$PWD/istio-1.30.3/bin:$PATH"
 
-# Install Istio with demo profile and revision
-istioctl install --set profile=demo --set revision=coraza -y
+# Install Istio with demo profile
+istioctl install --set profile=demo -y
 ```
 
 ### Deploy the Operator
