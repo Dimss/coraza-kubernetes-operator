@@ -993,20 +993,12 @@
         <section id="findings" class="section">
             <h2 class="section-title">Key Findings</h2>
 
-            <div class="findings">
-                <h3>🔍 Performance Insights</h3>
-                <ul>
-                    <li><strong>CRS Overhead is Request-Dependent:</strong> OWASP CoreRuleSet overhead varies from +14% to +205% depending on request shape. Simple GET requests show highest overhead because ~165 CRS rules iterate over empty ARGS collections.</li>
-                    <li><strong>Complex Requests = Lower Overhead:</strong> Requests with 25 query parameters show only +31% overhead vs +205% for simple GET. The rules are doing real inspection work instead of iterating empty collections.</li>
-                    <li><strong>Custom Rulesets Perform Well:</strong> 30 custom rules (medium) sometimes outperform 2 rules (minimal) due to rule ordering and early exits.</li>
-                    <li><strong>Production Viability:</strong> At p95, CRS adds 10-25ms of latency, which is acceptable for most web applications. Baseline performance (WAF off) is 3-12ms p95.</li>
-                </ul>
-            </div>
+            __KEY_FINDINGS__
         </section>
 
         <!-- Footer -->
         <div class="footer">
-            <p>Generated on __GENERATED_DATE__ | Test execution: ~8 hours</p>
+            <p>Generated on __GENERATED_DATE__ | __TEST_DURATION__</p>
             <p>Coraza Kubernetes Operator __OPERATOR_VERSION__ • __PLATFORM__ • __ISTIO_VERSION__</p>
         </div>
     </div>

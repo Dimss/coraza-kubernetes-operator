@@ -914,6 +914,136 @@ def prepare_chart_data(results, profiles, configs):
         'heatmapData': heatmap_data
     }
 
+def generate_key_findings(results, profiles, configs):
+    """Generate key findings dynamically from test results."""
+    if not results:
+        return '''
+            <div class="findings">
+                <h3>⚠️ No Results Available</h3>
+                <p>No test results were found. Run performance tests to generate findings.</p>
+            </div>
+        '''
+
+    findings = []
+
+    # Calculate CRS overhead range across profiles (using p95)
+    crs_overheads = []
+    baseline_latencies = []
+    crs_latencies = []
+
+    for profile in profiles:
+        baseline_key = (profile, 'off')
+        crs_key = (profile, 'crs')
+
+        if baseline_key in results and crs_key in results:
+            baseline_p95 = results[baseline_key]['p95']
+            crs_p95 = results[crs_key]['p95']
+
+            if baseline_p95 > 0:
+                overhead = ((crs_p95 - baseline_p95) / baseline_p95) * 100
+                crs_overheads.append(overhead)
+                baseline_latencies.append(baseline_p95)
+                crs_latencies.append(crs_p95)
+
+    if crs_overheads:
+        min_overhead = min(crs_overheads)
+        max_overhead = max(crs_overheads)
+        avg_overhead = sum(crs_overheads) / len(crs_overheads)
+
+        findings.append(
+            f'<li><strong>CRS Overhead Range:</strong> OWASP CoreRuleSet overhead varies from '
+            f'+{min_overhead:.0f}% to +{max_overhead:.0f}% (avg: +{avg_overhead:.0f}%) across '
+            f'different request profiles at p95. Overhead is highly dependent on request complexity.</li>'
+        )
+
+    # Baseline performance range
+    if baseline_latencies:
+        min_baseline = min(baseline_latencies)
+        max_baseline = max(baseline_latencies)
+        findings.append(
+            f'<li><strong>Baseline Performance:</strong> Without WAF, latency ranges from '
+            f'{min_baseline:.2f}ms to {max_baseline:.2f}ms at p95 across different load profiles.</li>'
+        )
+
+    # CRS absolute latency
+    if crs_latencies:
+        min_crs = min(crs_latencies)
+        max_crs = max(crs_latencies)
+        findings.append(
+            f'<li><strong>CRS Latency Impact:</strong> With 563 OWASP CoreRuleSet rules, '
+            f'latency ranges from {min_crs:.2f}ms to {max_crs:.2f}ms at p95. '
+            f'Absolute overhead is {min_crs - min(baseline_latencies):.2f}ms to '
+            f'{max_crs - max(baseline_latencies):.2f}ms.</li>'
+        )
+
+    # Compare ruleset sizes if data available
+    minimal_overheads = []
+    medium_overheads = []
+
+    for profile in profiles:
+        baseline_key = (profile, 'off')
+        minimal_key = (profile, 'minimal')
+        medium_key = (profile, 'medium')
+
+        if baseline_key in results:
+            baseline_p95 = results[baseline_key]['p95']
+
+            if minimal_key in results and baseline_p95 > 0:
+                minimal_p95 = results[minimal_key]['p95']
+                overhead = ((minimal_p95 - baseline_p95) / baseline_p95) * 100
+                minimal_overheads.append(overhead)
+
+            if medium_key in results and baseline_p95 > 0:
+                medium_p95 = results[medium_key]['p95']
+                overhead = ((medium_p95 - baseline_p95) / baseline_p95) * 100
+                medium_overheads.append(overhead)
+
+    if minimal_overheads and medium_overheads:
+        avg_minimal = sum(minimal_overheads) / len(minimal_overheads)
+        avg_medium = sum(medium_overheads) / len(medium_overheads)
+
+        findings.append(
+            f'<li><strong>Custom Rulesets:</strong> Minimal ruleset (2 rules) adds '
+            f'avg +{avg_minimal:.0f}% overhead, while medium ruleset (30 rules) adds '
+            f'avg +{avg_medium:.0f}% overhead at p95.</li>'
+        )
+
+    # Error rates
+    any_errors = False
+    for key, data in results.items():
+        if data.get('error_rate', 0) > 0:
+            any_errors = True
+            break
+
+    if any_errors:
+        findings.append(
+            '<li><strong>⚠️ Error Rates Detected:</strong> Some tests show non-zero error rates. '
+            'Check detection-only mode configuration if unexpected.</li>'
+        )
+    else:
+        findings.append(
+            '<li><strong>✅ Zero Error Rate:</strong> All tests completed successfully with 0% error rate, '
+            'confirming detection-only mode is working correctly.</li>'
+        )
+
+    if not findings:
+        findings.append(
+            '<li><strong>Insufficient Data:</strong> Not enough test results to generate meaningful findings. '
+            'Run complete test suite for comprehensive analysis.</li>'
+        )
+
+    findings_html = '\n'.join(['                    ' + f for f in findings])
+
+    return f'''
+            <div class="findings">
+                <h3>🔍 Performance Insights</h3>
+                <p><em>The following findings are dynamically generated from the test results in this report:</em></p>
+                <ul>
+{findings_html}
+                </ul>
+            </div>
+'''
+
 def main():
     base_path = Path(__file__).parent
     results_dir = base_path / 'results'
@@ -947,6 +1077,7 @@ def main():
     percentile_cards = generate_percentile_cards(results, profiles, configs)
     profile_tables = generate_profile_tables(results, profiles, configs)
     chart_data = prepare_chart_data(results, profiles, configs)
+    key_findings = generate_key_findings(results, profiles, configs)
 
     # Add ruleset data to chart_data for injection
     chart_data['rulesets'] = ruleset_data
@@ -961,7 +1092,14 @@ def main():
     html = html.replace('__OPERATOR_VERSION__', 'v0.5.0')
     html = html.replace('__LOAD_GENERATOR__', 'Fortio 1.76.0')
     html = html.replace('__TARGET_QPS__', '500 req/s')
-    html = html.replace('__TEST_DURATION__', '30 seconds')
+    # Calculate total test duration (60s per test + 30s settle time)
+    test_duration_per_run = 60  # seconds per test from fixed-500qps scenario
+    settle_time_per_run = 30  # seconds between tests
+    total_duration_seconds = total_tests * (test_duration_per_run + settle_time_per_run)
+    total_duration_hours = total_duration_seconds / 3600
+    duration_text = f"{total_tests} tests × 90s ≈ {total_duration_hours:.1f} hours"
+
+    html = html.replace('__TEST_DURATION__', duration_text)
     html = html.replace('__PROFILE_CARDS__', profile_cards)
     html = html.replace('__SCENARIO_CARD__', scenario_card)
     html = html.replace('__RULESET_CARDS__', ruleset_cards)
@@ -971,6 +1109,7 @@ def main():
     html = html.replace('__SUCCESS_RATE__', str(success_rate))
     html = html.replace('__PERCENTILE_CARDS__', percentile_cards)
     html = html.replace('__PROFILE_TABLES__', profile_tables)
+    html = html.replace('__KEY_FINDINGS__', key_findings)
     html = html.replace('__GENERATED_DATE__', datetime.now().strftime('%Y-%m-%d %H:%M UTC'))
 
     # Inject chart data
