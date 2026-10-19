@@ -294,6 +294,70 @@
         }
 
         /* Charts */
+        .help {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-left: 0.5rem;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 700;
+            vertical-align: middle;
+            cursor: help;
+            user-select: none;
+        }
+
+        .help-text {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 10px);
+            transform: translateX(-50%);
+            width: 360px;
+            max-width: 80vw;
+            padding: 0.875rem 1rem;
+            background: #1f2937;
+            color: #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            font-size: 0.875rem;
+            font-weight: 400;
+            line-height: 1.6;
+            text-align: left;
+            white-space: normal;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 100;
+        }
+
+        .help-text strong {
+            color: white;
+        }
+
+        /* Arrow pointing down at the badge */
+        .help-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #1f2937;
+        }
+
+        .help:hover .help-text,
+        .help:focus .help-text,
+        .help:focus-visible .help-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
         .chart-container {
             position: relative;
             height: 400px;
@@ -822,7 +886,7 @@
                         <li>
                             <strong>Coraza WAF WASM Plugin</strong> (optional, depending on test configuration) inspects the request.
                             Runs inside the Envoy proxy as a WebAssembly module. Rules are statically embedded (not cache-polled) for consistent performance measurement.
-                            The WAF evaluates all configured rules (0, 2, 30, or 563 depending on ruleset) and either allows or blocks the request.
+                            The WAF evaluates all configured rules (__RULE_COUNT_LIST__ depending on ruleset) and either allows or blocks the request.
                         </li>
                         <li>
                             <strong>Backend Echo Service</strong> receives allowed requests and returns a simple HTTP response.
@@ -872,7 +936,7 @@
                         <ul>
                             <li><strong>Baseline (WAF OFF):</strong> Pure Istio Gateway + Envoy overhead without any WAF filtering. This is our reference point.</li>
                             <li><strong>WAF Overhead:</strong> Additional latency introduced by the Coraza WASM plugin when evaluating security rules. Calculated as: (WAF latency - Baseline latency) / Baseline latency.</li>
-                            <li><strong>Rule Count Impact:</strong> How the number of rules (2, 30, or 563) affects latency. More rules = more inspection work = higher latency.</li>
+                            <li><strong>Rule Count Impact:</strong> How the number of rules (__WAF_RULE_COUNT_LIST__) affects latency. More rules = more inspection work = higher latency.</li>
                             <li><strong>Request Shape Impact:</strong> How request complexity (simple GET, query parameters, headers) affects WAF overhead. CRS rules iterate over ARGS and HEADERS, so more data = more work.</li>
                         </ul>
                     </div>
@@ -957,14 +1021,14 @@
                 <canvas id="complexityScalingChart"></canvas>
             </div>
 
-            <h3 style="margin-top: 3rem; margin-bottom: 1rem; color: #374151;">⚙️ Rules Efficiency Analysis</h3>
+            <h3 style="margin-top: 3rem; margin-bottom: 1rem; color: #374151;">⚙️ Rules Efficiency (Marginal Cost per Rule)</h3>
             <div class="chart-container">
                 <canvas id="rulesEfficiencyChart"></canvas>
             </div>
 
-            <h3 style="margin-top: 3rem; margin-bottom: 1rem; color: #374151;">📈 Tail Latency Gap (Predictability)</h3>
+            <h3 style="margin-top: 3rem; margin-bottom: 1rem; color: #374151;">📈 Tail Latency Ratio (Predictability)<span class="help" tabindex="0" role="note" aria-label="Answers one question: is the WAF making latency erratic? Each bar is p99 divided by p50, so it measures how spread out latency is, independently of how slow it is. A bar of 1.0 would mean the slowest 1% of requests are just as fast as a typical one, with no tail at all. Low, even bars mean the WAF adds latency consistently on every request, rather than letting some requests stall.">?<span class="help-text">Answers one question: <strong>is the WAF making latency erratic?</strong> Each bar is p99 divided by p50, so it measures how <em>spread out</em> latency is, independently of how slow it is. A bar of 1.0 would mean the slowest 1% of requests are just as fast as a typical one — no tail at all. Low, even bars mean the WAF adds latency consistently on every request, rather than letting some requests stall.</span></span></h3>
             <div class="chart-container" style="height: 450px;">
-                <canvas id="tailGapChart"></canvas>
+                <canvas id="tailRatioChart"></canvas>
             </div>
 
             <h3 style="margin-top: 3rem; margin-bottom: 1rem; color: #374151;">🔥 Latency Heatmap (p95)</h3>
@@ -1113,10 +1177,10 @@
                 new Chart(effCtx, DATA.rulesEfficiencyChart);
             }
 
-            // Tail Gap Chart
-            if (DATA.tailGapChart) {
-                const tailCtx = document.getElementById('tailGapChart').getContext('2d');
-                new Chart(tailCtx, DATA.tailGapChart);
+            // Tail Ratio Chart
+            if (DATA.tailRatioChart) {
+                const tailCtx = document.getElementById('tailRatioChart').getContext('2d');
+                new Chart(tailCtx, DATA.tailRatioChart);
             }
 
             // Heatmap Table
