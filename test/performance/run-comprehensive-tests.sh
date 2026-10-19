@@ -22,18 +22,8 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 source ./lib.sh
 preflight
 
-echo "═══════════════════════════════════════════════════════════════"
-echo "  COMPREHENSIVE PERFORMANCE TEST SUITE"
-echo "═══════════════════════════════════════════════════════════════"
-echo ""
-echo "📋 Configuration:"
-echo "  Profiles: baseline-get, args-heavy, headers-heavy"
-echo "  Rulesets: off, minimal, medium, crs"
-echo "  Scenario: fixed-500qps (500 QPS, 60s duration)"
-echo "  Total tests: 12 combinations"
-echo ""
-echo "  Detection-only mode: Expected (0% error rate)"
-echo ""
+# Join args with ", " — "${arr[*]}" can only join on a single IFS character.
+join_list() { local out="$1"; shift; local x; for x in "$@"; do out+=", ${x}"; done; printf '%s' "${out}"; }
 
 # Test configuration
 SCENARIO_FILE="scenarios/fixed-500qps.env"
@@ -54,6 +44,30 @@ for profile in "${PROFILES[@]}"; do
         exit 1
     fi
 done
+
+# Read the rate/duration out of the scenario rather than restating them: the
+# banner claimed "60s" long after the scenario moved to 120s, and a wrong
+# duration in the log makes every archived run report ambiguous.
+scenario_name="$(basename "${SCENARIO_FILE}" .env)"
+# shellcheck disable=SC1090
+read -r scenario_qps scenario_duration scenario_conns < <(
+    source "${SCENARIO_FILE}"; echo "${QPS:-?} ${DURATION:-?} ${CONNS:-?}"
+)
+
+echo "═══════════════════════════════════════════════════════════════"
+echo "  COMPREHENSIVE PERFORMANCE TEST SUITE"
+echo "═══════════════════════════════════════════════════════════════"
+echo ""
+echo "📋 Configuration:"
+echo "  Profiles: $(join_list "${PROFILES[@]}")"
+echo "  Rulesets: $(join_list off "${RULESETS[@]}")"
+echo "  Scenario: ${scenario_name} (${scenario_qps} QPS, ${scenario_duration}, ${scenario_conns} connections)"
+echo "  Total tests: $(( ${#PROFILES[@]} * (${#RULESETS[@]} + 1) )) combinations"
+echo ""
+echo "  Detection-only mode: Expected (0% error rate)"
+echo "  Repeats: 1 per cell — indicative only; the methodology wants >=3."
+echo "           Re-run this script and take medians before reporting."
+echo ""
 
 echo "✅ All prerequisites verified"
 echo ""

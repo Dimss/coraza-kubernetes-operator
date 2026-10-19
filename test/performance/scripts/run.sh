@@ -179,10 +179,6 @@ loadgen_exec fortio "${fortio_args[@]}" -t "${WARMUP}" -quiet "${url}" >/dev/nul
 log "Measured run: scenario='${SCENARIO_NAME}' tag='${TAG}' qps=${QPS} conns=${CONNS} dur=${DURATION}"
 log "  shape: method=${METHOD:-GET(auto)} path='${REQ_PATH}' body=${PAYLOAD_FILE:-${PAYLOAD:+inline}}${PAYLOAD_FILE:+ }${PAYLOAD_SIZE}B ct=${CONTENT_TYPE:-none} hdrs=${#HEADERS[@]}"
 log "  target: ${url}"
-if [[ -n "${PAYLOAD_FILE}" ]]; then
-  err "measured run via a one-off Job does not support PAYLOAD_FILE (no ConfigMap mount). Aborting."
-  exit 1
-fi
 run_start="$(date -u +%s)"
 # Run the measured load as a one-off Job rather than streaming it back over a
 # single long-lived 'kubectl exec' connection: some client<->API-server network
@@ -233,6 +229,20 @@ spec:
           # fortio, so args would append and yield 'fortio fortio load ...'.
           # This matches what 'kubectl create job -- ...' used to generate.
           command:${job_cmd_yaml}
+          volumeMounts:
+            - name: payloads
+              mountPath: /payloads
+              readOnly: true
+      volumes:
+        # Same mount as manifests/loadgen.yaml, so a PAYLOAD_FILE profile
+        # resolves to the identical path (/payloads/...) in the shape probe
+        # (which runs in the loadgen pod) and in this measured-run Job.
+        # 'optional' keeps profiles that send no body runnable before
+        # setup.sh has built the ConfigMap.
+        - name: payloads
+          configMap:
+            name: ${PAYLOADS_CONFIGMAP}
+            optional: true
 EOF
 
 # DURATION is a Go duration ("60s", "2m", "4h", "1m30s"). Stripping non-digits

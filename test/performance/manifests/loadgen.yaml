@@ -1,5 +1,7 @@
 # In-cluster load generator (fortio). Runs the built-in fortio server so the pod
-# stays alive; load runs are driven via `fortio load` through kubectl exec.
+# stays alive; run.sh drives the validity probes and the discarded warm-up here
+# via kubectl exec. The MEASURED run is a separate one-off Job (see run.sh),
+# which mounts the same /payloads ConfigMap so both see identical bodies.
 # fortio uses an open (constant-QPS) model with HDR histograms, which avoids the
 # coordinated-omission tail-latency error that closed-model tools suffer from.
 apiVersion: apps/v1
