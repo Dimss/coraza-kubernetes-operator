@@ -3,12 +3,12 @@
 
 Groups fortio runs by TAG (parsed from `<scenario>__<tag>__<ts>.json`), treats
 the `waf-off` tag as the B0 baseline, takes the MEDIAN across repeats per
-percentile (ARCHITECTURE.md §9.6), and computes WAF cost as a delta vs B0.
+percentile (README.md, "Methodology"), and computes WAF cost as a delta vs B0.
 
 If `collect.sh` was used, the matching `metrics__<tag>__<ts>.jsonl` files are
 folded in as per-tag server-side SUMMARY tiles (RPS by outcome, active rule
 count, plugin reloads in-window, cache p99, cache size, workqueue). The output
-is one self-contained HTML file — the durable per-run artifact (§13): no live
+is one self-contained HTML file — the durable per-run artifact: no live
 Grafana/Prometheus needed to view it later or to compare runs across time.
 
     python3 scripts/report.py [--scenario NAME] [--results results] [--out dashboard.html]

@@ -16,8 +16,8 @@ reimplement port-forwarding, fortio invocation, or cleanup.** The scripts under
 `test/performance/scripts/` are the source of truth; this skill adds the correct
 ordering, the guardrails, and the delta analysis.
 
-Read `test/performance/ARCHITECTURE.md` (methodology, tiers, scenarios) and
-`test/performance/README.md` if you need background. All scripts `cd` to
+Read `test/performance/README.md` (architecture, the three axes, methodology,
+tiers, scenarios, known limitations) if you need background. All scripts `cd` to
 `test/performance/` themselves, so they can be invoked by path from anywhere.
 
 ## Prerequisites (verify first)
@@ -264,7 +264,7 @@ regenerating — both explained in its header comment:
 by tag; `waf-off` = B0), takes the **median across repeats**, computes the delta
 vs B0 per percentile, folds in the server-side summary from any
 `metrics__*.jsonl` (`collect.sh`), and writes a **self-contained**
-`dashboard.html` — the durable per-run artifact (ARCHITECTURE.md §13). Needs
+`dashboard.html` — the durable per-run artifact. Needs
 **no cluster** and **no live Grafana/Prometheus** to view.
 
 ```bash
@@ -273,7 +273,7 @@ test/performance/scripts/report.py --scenario fixed-500qps --out results/fixed-5
 ```
 
 Cross-run comparison (e.g. runs a week apart) is **report-to-report** against the
-committed baseline — not on a live dashboard (§9). For a quick textual delta
+committed baseline — not on a live dashboard. For a quick textual delta
 without the HTML:
 
 1. `grep -H . results/<scenario>__*.summary.txt` (has `p50_ms…p99.9_ms`, `error_pct`).
@@ -306,9 +306,12 @@ To also gather metrics during a suite: `COLLECT=true test/performance/scripts/su
   `run.sh` already plumbs `METHOD`, `REQ_PATH`, `CONTENT_TYPE`, `PAYLOAD_FILE`,
   `PAYLOAD`, `PAYLOAD_SIZE` and `HEADERS` through to fortio — PUT/PATCH and
   custom headers are supported. Add a profile rather than editing `run.sh`.
-- **`PAYLOAD_FILE` paths resolve inside the loadgen pod** (`/payloads/...`, from
-  the `perf-payloads` ConfigMap). A new body needs `gen-payloads.sh` +
-  `setup.sh` before it is visible.
+- **`PAYLOAD_FILE` paths resolve to `/payloads/...`** from the `perf-payloads`
+  ConfigMap, mounted in both the loadgen pod (probes, warm-up) and the
+  measured-run Job. A new body needs `gen-payloads.sh` + `setup.sh` before it
+  is visible, so **run `setup` before any `json-*`/`form-urlencoded`/`multipart`
+  preset** — the mount is `optional`, and `run.sh`'s pre-run ConfigMap check is
+  what stops an unbuilt payload from being measured as an empty body.
 - **Mixed benign/malicious ratios aren't a single fortio run** — run benign and
   attack scenarios separately.
 - **Absolute latency is not portable** across clusters — only the delta vs. B0
