@@ -179,8 +179,105 @@ loadgen_exec fortio "${fortio_args[@]}" -t "${WARMUP}" -quiet "${url}" >/dev/nul
 log "Measured run: scenario='${SCENARIO_NAME}' tag='${TAG}' qps=${QPS} conns=${CONNS} dur=${DURATION}"
 log "  shape: method=${METHOD:-GET(auto)} path='${REQ_PATH}' body=${PAYLOAD_FILE:-${PAYLOAD:+inline}}${PAYLOAD_FILE:+ }${PAYLOAD_SIZE}B ct=${CONTENT_TYPE:-none} hdrs=${#HEADERS[@]}"
 log "  target: ${url}"
+if [[ -n "${PAYLOAD_FILE}" ]]; then
+  err "measured run via a one-off Job does not support PAYLOAD_FILE (no ConfigMap mount). Aborting."
+  exit 1
+fi
 run_start="$(date -u +%s)"
-loadgen_exec fortio "${fortio_args[@]}" -t "${DURATION}" -json - "${url}" > "${raw_json}"
+# Run the measured load as a one-off Job rather than streaming it back over a
+# single long-lived 'kubectl exec' connection: some client<->API-server network
+# paths reset multi-minute exec streams (observed consistently at ~120s with
+# zero bytes in flight), which aborts every run with DURATION>=~120s. Polling
+# Job status with short, independent API calls needs no connection to stay
+# open for the run's duration, and 'kubectl logs' on an already-finished Job
+# is a single bounded fetch rather than a live stream.
+job_name="perf-run-$(date +%s)-${RANDOM}"
+
+# Render one argv element as a YAML single-quoted scalar, so values containing
+# ':', '{' or spaces (URLs, -H headers) cannot be reparsed as YAML structure.
+yaml_quote() { printf "'%s'" "${1//\'/\'\'}"; }
+
+# -quiet drops fortio's info-level progress logging, which 'kubectl logs'
+# would otherwise merge with the JSON result (stdout+stderr are combined).
+# The plain-text summary report isn't suppressed by -quiet, so it still
+# precedes the JSON in the combined log; extracted below with sed.
+job_cmd=(fortio "${fortio_args[@]}" -t "${DURATION}" -quiet -json - "${url}")
+job_cmd_yaml=""
+for _arg in "${job_cmd[@]}"; do
+  job_cmd_yaml+=$'\n            - '"$(yaml_quote "${_arg}")"
+done
+
+# Applied as YAML rather than 'kubectl create job' so the injection annotation
+# and backoffLimit are set when the pod is created, not patched in afterwards.
+"${CLI}" apply -n "${NAMESPACE}" -f - >/dev/null <<EOF
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${job_name}
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      annotations:
+        # Keep the load generator OUT of the Istio mesh, matching
+        # manifests/loadgen.yaml. An injected sidecar would add its own latency
+        # and CPU to every measured request, and would also stop the Job from
+        # ever reporting success, since istio-proxy does not exit on its own.
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: fortio
+          image: ${LOADGEN_IMAGE}
+          # 'command', not 'args': the fortio image's ENTRYPOINT is already
+          # fortio, so args would append and yield 'fortio fortio load ...'.
+          # This matches what 'kubectl create job -- ...' used to generate.
+          command:${job_cmd_yaml}
+EOF
+
+# DURATION is a Go duration ("60s", "2m", "4h", "1m30s"). Stripping non-digits
+# would read "4h" as 4 seconds and abort a soak run after the 90s buffer.
+duration_seconds() {
+  local spec="$1" total=0 num unit
+  [[ "${spec}" =~ ^([0-9]+[hms])+$ ]] || return 1
+  while [[ "${spec}" =~ ^([0-9]+)([hms])(.*)$ ]]; do
+    num="${BASH_REMATCH[1]}"; unit="${BASH_REMATCH[2]}"; spec="${BASH_REMATCH[3]}"
+    case "${unit}" in
+      h) total=$(( total + num * 3600 ));;
+      m) total=$(( total + num * 60 ));;
+      s) total=$(( total + num ));;
+    esac
+  done
+  printf '%s' "${total}"
+}
+
+if ! dur_secs="$(duration_seconds "${DURATION}")"; then
+  err "cannot parse DURATION='${DURATION}' (expected a Go duration such as 60s, 2m or 4h)"
+  "${CLI}" delete job "${job_name}" -n "${NAMESPACE}" --ignore-not-found >/dev/null 2>&1 || true
+  exit 1
+fi
+deadline=$(( $(date +%s) + dur_secs + 90 ))
+while true; do
+  read -r succeeded failed <<<"$("${CLI}" get job "${job_name}" -n "${NAMESPACE}" \
+    -o jsonpath='{.status.succeeded}{" "}{.status.failed}' 2>/dev/null || true)"
+  [[ "${succeeded:-0}" == "1" ]] && break
+  if [[ "${failed:-0}" == "1" ]]; then
+    err "measured run Job '${job_name}' failed; see: ${CLI} logs -n ${NAMESPACE} job/${job_name}"
+    exit 1
+  fi
+  if (( $(date +%s) > deadline )); then
+    err "measured run Job '${job_name}' did not complete within ${dur_secs}s+90s buffer. Aborting."
+    "${CLI}" delete job "${job_name}" -n "${NAMESPACE}" --ignore-not-found >/dev/null 2>&1 || true
+    exit 1
+  fi
+  sleep 10
+done
+# fortio's plain-text report precedes the JSON in the combined log and isn't
+# itself valid JSON; keep from the top-level '{' through the matching
+# unindented closing '}' (fortio pretty-prints with a 2-space indent, so only
+# the outermost brace sits at column 0).
+"${CLI}" logs -n "${NAMESPACE}" "job/${job_name}" | sed -n '/^{/,/^}/p' > "${raw_json}"
+"${CLI}" delete job "${job_name}" -n "${NAMESPACE}" --ignore-not-found >/dev/null 2>&1 || true
 run_end="$(date -u +%s)"
 
 # --- parse summary ----------------------------------------------------------
